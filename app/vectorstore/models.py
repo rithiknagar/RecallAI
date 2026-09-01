@@ -119,3 +119,63 @@ class DocumentChunkModel(Base):
     )
 
 
+class ConversationSessionModel(Base):
+    __tablename__ = "conversation_sessions"
+
+    id = Column(
+        PGUUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    messages = relationship(
+        "ConversationMessageModel",
+        back_populates="session",
+        cascade="all, delete-orphan",
+    )
+
+class ConversationMessageModel(Base):
+    __tablename__ = "conversation_messages"
+
+    id = Column(
+        PGUUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
+    )
+
+    session_id = Column(
+        PGUUID(as_uuid=True),
+        ForeignKey(
+            "conversation_sessions.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+        index=True,
+    )
+
+    role = Column(
+        String(20),
+        nullable=False,
+    )
+
+    content = Column(
+        Text,
+        nullable=False,
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    session = relationship(
+        "ConversationSessionModel",
+        back_populates="messages",
+    )
