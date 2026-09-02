@@ -24,5 +24,6 @@ class VectorStore(ABC):
         self,
         query: str,
         k: int,
+        metadata_filter: dict[str, object] | None = None,
     ) -> List[RetrievalResult]:
         raise NotImplementedError

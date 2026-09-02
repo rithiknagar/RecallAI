@@ -34,6 +34,12 @@ from app.vectorstore.pgvector_store import (
     PgVectorStore,
 )
 
+from app.reranking.huggingface import (
+    HuggingFaceReranker,
+)
+
+from app.contextassembler.assembler import DefaultContextAssembler
+
 
 session = SessionLocal()
 
@@ -47,9 +53,13 @@ vector_store = PgVectorStore(
 retriever = PgVectorRetriever(
     vector_store
 )
+reranker = HuggingFaceReranker(
+    model_name="cross-encoder/ms-marco-MiniLM-L-6-v2"
+)
 
 retrieval_service = RetrievalService(
-    retriever
+    retriever,
+    reranker,
 )
 
 llm = OllamaLLM(
@@ -86,6 +96,7 @@ generation_service = GenerationService(
     prompt_builder=rag_prompt_builder,
 )
 
+context_assembler=DefaultContextAssembler()
 # Complete Conversational RAG
 conversational_rag = (
     ConversationalRAGService(
@@ -93,6 +104,7 @@ conversational_rag = (
         query_rewriter=query_rewriter,
         retrieval_service=retrieval_service,
         generation_service=generation_service,
+        context_assembler=context_assembler
     )
 )
 
@@ -113,17 +125,24 @@ def main():
         )
 
         if question.strip().lower() == "exit":
-            session.commit()
+            # session.commit()
             break
 
-        answer = conversational_rag.ask(
+        response = conversational_rag.ask(
             session_id=session_id,
             question=question,
             top_k=5,
+            metadata_filter={
+                "filename": "company_letter.pdf"
+            },
+            candidate_k=10
+            
+            # similarity_threshold=0.70
+           
         )
 
         print("\nAnswer:")
-        print(answer)
+        print(response.answer)
 
 if __name__ == "__main__":
     main()

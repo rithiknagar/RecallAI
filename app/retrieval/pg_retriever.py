@@ -12,7 +12,7 @@ class PgVectorRetriever(Retriever):
     ):
         self._vector_store = vector_store
 
-    def retrieve( self, query: str, top_k: int = 5, ) -> list[RetrievedChunk]:
+    def retrieve( self, query: str, top_k: int = 5,metadata_filter: dict[str, object] | None = None,  ) -> list[RetrievedChunk]:
 
 
-        return self._vector_store.similarity_search( query, top_k )
+        return self._vector_store.similarity_search( query, top_k , metadata_filter)

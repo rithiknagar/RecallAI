@@ -26,5 +26,5 @@ class GenerationService:
             chunks=chunks,
             history=history or [],
         )
-
+        
         return self._llm.generate(prompt)

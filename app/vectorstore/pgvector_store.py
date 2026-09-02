@@ -100,44 +100,59 @@ class PgVectorStore(VectorStore):
     def similarity_search(
     self,
     query: str,
-    k: int=5,
+    k: int = 5,
+    metadata_filter: dict[str, object] | None = None,
 ) -> List[RetrievalResult]:
 
         query_vector = (
             self._embedding_service
             .embed_query(query)
         )
-
+        
         distance = (
             DocumentChunkModel.embedding.cosine_distance(
                 query_vector
             )
         )
 
+        statement = select(
+            DocumentChunkModel,
+            distance.label("distance"),
+        )
+
+        if metadata_filter:
+
+            for key, value in metadata_filter.items():
+
+                statement = statement.where(
+                    DocumentChunkModel
+                    .chunk_metadata[key]
+                    .as_string()
+                    == str(value)
+                )
+
         statement = (
-            select(
-                DocumentChunkModel,
-                distance.label("distance"),
-            )
+            statement
             .order_by(distance)
             .limit(k)
         )
 
-        rows = self._session.execute(
-            statement
-        ).all()
+        rows = (
+            self._session
+            .execute(statement)
+            .all()
+        )
 
         results = []
 
         for chunk, distance_value in rows:
 
-
             results.append(
                 RetrievedChunk(
-                    chunk_id=chunk.id,
+                    chunk_id=chunk.chunk_index,
                     document_id=chunk.document_id,
                     content=chunk.content,
-                    score=1 - distance_value,
+                    retrieval_score=1 - distance_value,
                     metadata=chunk.chunk_metadata,
                 )
             )
