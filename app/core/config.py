@@ -2,6 +2,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config=SettingsConfigDict(env_file="app/.env",extra="ignore")
+
+    SECRET_KEY: str
+    ALGORITHM:str
+    EXP_TIME:int
+
     app_name: str = "Production RAG"
 
     embedding_model: str = (
@@ -19,11 +25,6 @@ class Settings(BaseSettings):
     faiss_index_path: str = "data/vectorstore/index.faiss"
     documents_path: str = "data/vectorstore/documents.pkl"
 
-    model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore",
-    )
 
 
 settings = Settings()

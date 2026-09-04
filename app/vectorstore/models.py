@@ -128,10 +128,28 @@ class ConversationSessionModel(Base):
         default=uuid4,
     )
 
+    user_id = Column(
+        PGUUID(as_uuid=True),
+        ForeignKey("users.id"),
+        nullable=False,
+        index=True,
+    )
+
+    title = Column(
+        String(255),
+        nullable=False,
+        default="New Conversation",
+    )
+
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,
         default=datetime.utcnow,
+    )
+
+    user = relationship(
+        "UserModel",
+        back_populates="sessions",
     )
 
     messages = relationship(
@@ -178,4 +196,37 @@ class ConversationMessageModel(Base):
     session = relationship(
         "ConversationSessionModel",
         back_populates="messages",
+    )
+
+class UserModel(Base):
+    __tablename__ = "users"
+
+    id = Column(
+        PGUUID(as_uuid=True),
+        primary_key=True,
+        default=uuid4,
+    )
+
+    email = Column(
+        String(255),
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+
+    password_hash = Column(
+        String(255),
+        nullable=False,
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=datetime.utcnow,
+    )
+
+    sessions = relationship(
+        "ConversationSessionModel",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
