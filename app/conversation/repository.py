@@ -25,3 +25,9 @@ class ConversationRepository(ABC):
         session_id: UUID,
     ) -> list[Message]:
         raise NotImplementedError
+
+    @abstractmethod
+    def get_session(
+        self,
+        session_id: UUID,):
+        raise NotImplementedError

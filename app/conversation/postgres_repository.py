@@ -21,15 +21,13 @@ class PostgresConversationRepository(
     ) -> None:
         self._session = session
 
-    def create_session(self) -> UUID:
+    def create_session(self,user_id: UUID, title: str = "New Conversation",) -> UUID:
 
         conversation_session = (
-            ConversationSessionModel()
+            ConversationSessionModel(user_id=user_id, title=title,)
         )
 
-        self._session.add(
-            conversation_session
-        )
+        self._session.add( conversation_session)
 
         self._session.flush()
 
@@ -93,3 +91,22 @@ class PostgresConversationRepository(
             )
             for row in rows
         ]
+
+    def get_session( self, session_id: UUID,):
+    
+            statement = (
+                select(ConversationSessionModel)
+                .where(
+                    ConversationSessionModel.id
+                    == session_id
+                )
+            )
+    
+            row = (
+                self._session
+                .execute(statement)
+                .scalar_one_or_none()
+    
+            )
+    
+            return row

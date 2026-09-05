@@ -14,11 +14,9 @@ class ConversationService:
     ) -> None:
         self._repository = repository
 
-    def create_session(self) -> UUID:
+    def create_session(self, user_id: UUID, title: str = "New Conversation",) -> UUID:
 
-        session_id = (
-            self._repository.create_session()
-        )
+        session_id = self._repository.create_session(user_id=user_id,title=title,)
 
         return session_id
 
@@ -58,3 +56,9 @@ class ConversationService:
         return self._repository.get_messages(
             session_id=session_id,
         )
+    
+    def get_session(self, session_id: UUID,):
+    
+            return self._repository.get_session(
+                session_id=session_id,
+            )
