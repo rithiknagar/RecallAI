@@ -18,17 +18,16 @@ class ChatRequest(BaseModel):
     )
 
 class CitationResponse(BaseModel):
-
     source_id: str
-    document_id: str
-    source: str | None
-    page: int | None
+    document_id: UUID
     chunk_id: int
+    source: str | None = None
+    page: int | None = None 
 
 
 class ChatResponse(BaseModel):
-
     answer: str
+    citations: list[CitationResponse]
 
 class CreateConversation(BaseModel):
     user_id:UUID

@@ -6,6 +6,7 @@ from app.generation.service import GenerationService
 from app.retrieval.service import RetrievalService
 from app.contextassembler.assembler import ContextAssembler
 from app.retrieval.models import RAGResponse
+from app.citations.service import CitationService
 
 
 class ConversationalRAGService:
@@ -16,7 +17,8 @@ class ConversationalRAGService:
         query_rewriter: QueryRewriter,
         retrieval_service: RetrievalService,
         generation_service: GenerationService,
-        context_assembler: ContextAssembler
+        context_assembler: ContextAssembler,
+        citation_service: CitationService,
     ) -> None:
 
         self._conversation_service = (
@@ -35,6 +37,9 @@ class ConversationalRAGService:
         self._context_assembler = (
             context_assembler
         )
+        self._citation_service = (
+                citation_service
+                )
 
     def ask(
         self,
@@ -73,6 +78,10 @@ class ConversationalRAGService:
                     candidate_k=candidate_k
                 )
             )
+
+            citations = self._citation_service.build_citations(chunks)
+                          
+
             chunks=self._context_assembler.assemble(chunks)
 
             # print("\nRetrieved chunks:")
@@ -104,6 +113,12 @@ class ConversationalRAGService:
                 )
             )
 
+           
+            answer = self._citation_service.clean_invalid_citations(
+                answer=answer,
+                citations=citations
+            )
+
             self._conversation_service.add_message(
                 session_id=session_id,
                 role="user",
@@ -116,8 +131,11 @@ class ConversationalRAGService:
                 content=answer,
             )
 
+            print("answer is ",answer)
+
 
             return  RAGResponse(
                 answer=answer,
                 retrieved_chunks=chunks,
+                citations=citations
             )

@@ -12,19 +12,28 @@ class RAGPromptBuilder(PromptBuilder):
         history: list[Message],
     ) -> str:
 
-        context = self._build_context(chunks)
+        context = self.build_context(chunks)
         conversation = self._build_history(history)
 
         return f"""
-You are a helpful assistant.
+You are a helpful assistant answering questions using the provided context.
 
-Answer the user's question using the provided context
-and conversation history.
+Use only the provided context to answer factual questions.
 
-Use the retrieved context as the source of truth.
+Each context source has a source identifier such as [S1], [S2], etc.
 
-If the answer cannot be found in the provided context,
-say that you don't have enough information.
+When making a factual claim based on a source, include the corresponding
+source identifier in the answer.
+
+Example:
+Employees can carry forward up to 5 days of unused leave. [S1]
+
+Rules:
+1. Do not invent source identifiers.
+2. Only use source identifiers that appear in the provided context.
+3. Do not invent information that is not supported by the context.
+4. If the context does not contain enough information, say so.
+5. Place citations close to the claim they support.
 
 Conversation history:
 {conversation}
@@ -38,15 +47,51 @@ Current question:
 Answer:
 """.strip()
 
-    def _build_context(
-        self,
-        chunks: list[RetrievedChunk],
-    ) -> str:
+    # def _build_context(
+    #     self,
+    #     chunks: list[RetrievedChunk],
+    # ) -> str:
 
-        return "\n\n".join(
-            chunk.content
-            for chunk in chunks
-        )
+    #     return "\n\n".join(
+    #         chunk.content
+    #         for chunk in chunks
+    #     )
+
+    def build_context(
+    self,
+    chunks: list[RetrievedChunk],
+) -> str:
+
+        sections = []
+
+        for index, chunk in enumerate(
+            chunks,
+            start=1,
+        ):
+
+            source_id = f"S{index}"
+
+            source = chunk.metadata.get(
+                "source",
+                "unknown",
+            )
+
+            page = chunk.metadata.get(
+                "page",
+                "unknown",
+            )
+
+            sections.append(
+                f"""
+    [{source_id}]
+    Document: {source}
+    Page: {page}
+
+    {chunk.content}
+    """.strip()
+            )
+
+        return "\n\n".join(sections)
 
     def _build_history(
         self,

@@ -39,7 +39,7 @@ from app.reranking.huggingface import (
 )
 
 from app.contextassembler.assembler import DefaultContextAssembler
-
+from app.citations.service import CitationService
 
 session = SessionLocal()
 
@@ -95,7 +95,7 @@ generation_service = GenerationService(
     llm=llm,
     prompt_builder=rag_prompt_builder,
 )
-
+citation_service = CitationService()
 context_assembler=DefaultContextAssembler()
 # Complete Conversational RAG
 conversational_rag = (
@@ -104,7 +104,8 @@ conversational_rag = (
         query_rewriter=query_rewriter,
         retrieval_service=retrieval_service,
         generation_service=generation_service,
-        context_assembler=context_assembler
+        context_assembler=context_assembler,
+        citation_service=citation_service
     )
 )
 

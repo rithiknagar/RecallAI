@@ -1,11 +1,12 @@
 from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
+from app.citations.models import Citation
 
 
 @dataclass
 class RetrievedChunk:
-    chunk_id: UUID
+    chunk_id: int
     document_id: UUID
     content: str
     # score: float
@@ -17,3 +18,4 @@ class RetrievedChunk:
 class RAGResponse:
     answer: str
     retrieved_chunks: list[RetrievedChunk]
+    citations: list[Citation]
